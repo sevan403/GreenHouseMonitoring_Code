@@ -27,15 +27,19 @@ DEFAULT_SETTINGS = {
 def initialize_settings():
     """Initialize settings with default values if they don't exist"""
     try:
-        with db.app.app_context():
-            for key, value in DEFAULT_SETTINGS.items():
-                setting = Settings.query.filter_by(name=key).first()
-                if not setting:
-                    setting = Settings(name=key, value=value)
-                    db.session.add(setting)
+        # Check if we're already in an app context
+        if not hasattr(db, 'app'):
+            logger.warning("db.app not found when initializing settings")
+            return
             
-            db.session.commit()
-            logger.info("Settings initialized successfully")
+        for key, value in DEFAULT_SETTINGS.items():
+            setting = Settings.query.filter_by(name=key).first()
+            if not setting:
+                setting = Settings(name=key, value=value)
+                db.session.add(setting)
+        
+        db.session.commit()
+        logger.info("Settings initialized successfully")
     except Exception as e:
         logger.error(f"Error initializing settings: {e}")
 
@@ -43,10 +47,14 @@ def get_all_settings():
     """Get all settings as a dictionary"""
     try:
         settings = {}
-        with db.app.app_context():
-            all_settings = Settings.query.all()
-            for setting in all_settings:
-                settings[setting.name] = setting.value
+        # Use the existing app context when called from a route
+        if not hasattr(db, 'app'):
+            logger.error("db.app not found, using DEFAULT_SETTINGS")
+            return DEFAULT_SETTINGS
+            
+        all_settings = Settings.query.all()
+        for setting in all_settings:
+            settings[setting.name] = setting.value
         
         return settings
     except Exception as e:
@@ -56,11 +64,15 @@ def get_all_settings():
 def get_setting(name, default=None):
     """Get a specific setting by name"""
     try:
-        with db.app.app_context():
-            setting = Settings.query.filter_by(name=name).first()
-            if setting:
-                return setting.value
+        # Check if we're already in an app context
+        if not hasattr(db, 'app'):
+            logger.warning(f"db.app not found when getting setting '{name}', returning default")
             return default
+            
+        setting = Settings.query.filter_by(name=name).first()
+        if setting:
+            return setting.value
+        return default
     except Exception as e:
         logger.error(f"Error retrieving setting '{name}': {e}")
         return default
@@ -68,17 +80,21 @@ def get_setting(name, default=None):
 def update_setting(name, value):
     """Update a setting value"""
     try:
-        with db.app.app_context():
-            setting = Settings.query.filter_by(name=name).first()
-            if setting:
-                setting.value = value
-            else:
-                setting = Settings(name=name, value=value)
-                db.session.add(setting)
+        # Check if we're already in an app context
+        if not hasattr(db, 'app'):
+            logger.warning(f"db.app not found when updating setting '{name}'")
+            return False
             
-            db.session.commit()
-            logger.info(f"Setting '{name}' updated to '{value}'")
-            return True
+        setting = Settings.query.filter_by(name=name).first()
+        if setting:
+            setting.value = value
+        else:
+            setting = Settings(name=name, value=value)
+            db.session.add(setting)
+        
+        db.session.commit()
+        logger.info(f"Setting '{name}' updated to '{value}'")
+        return True
     except Exception as e:
         logger.error(f"Error updating setting '{name}': {e}")
         return False
@@ -91,10 +107,14 @@ def export_settings():
 def import_settings(settings_json):
     """Import settings from a JSON string"""
     try:
+        # Check if we're already in an app context
+        if not hasattr(db, 'app'):
+            logger.warning("db.app not found when importing settings")
+            return False
+            
         settings = json.loads(settings_json)
-        with db.app.app_context():
-            for name, value in settings.items():
-                update_setting(name, value)
+        for name, value in settings.items():
+            update_setting(name, value)
         return True
     except Exception as e:
         logger.error(f"Error importing settings: {e}")
