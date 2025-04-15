@@ -15,13 +15,16 @@ SIMULATION_MODE = True
 GPIO = None
 Adafruit_DHT = None
 
-# GPIO Pin definitions (used only when not in simulation mode)
-FAN_PIN = 17
-LIGHT_PIN = 18
-WATER_PUMP_PIN = 27
-DHT_SENSOR_PIN = 4
-LIGHT_SENSOR_PIN = 23
-SOIL_MOISTURE_PIN = 24
+# GPIO Pin definitions based on user's equipment
+# Sensor connections
+DHT_SENSOR_PIN = 4  # DHT22 on GPIO4
+# BH1750 uses I2C (SDA/SCL) - no specific GPIO pin needed
+SOIL_MOISTURE_PIN = 17  # Capacitive soil moisture on GPIO17
+
+# Actuator connections through relay module
+FAN_PIN = 18  # Example relay pin for fan
+LIGHT_PIN = 23  # Example relay pin for grow lights
+WATER_PUMP_PIN = 24  # Example relay pin for water pump
 
 # DHT sensor type (DHT22 or DHT11) - only defined when hardware is available
 DHT_SENSOR_TYPE = None
@@ -89,8 +92,21 @@ def control_fan(state):
     """Control the fan state"""
     control_state['fan'] = state
     
-    if not SIMULATION_MODE:
-        GPIO.output(FAN_PIN, GPIO.HIGH if state else GPIO.LOW)
+    # Try to send command via MQTT first
+    try:
+        from mqtt_client import send_fan_command, is_connected
+        if is_connected:
+            logger.info(f"Sending fan command via MQTT: {'ON' if state else 'OFF'}")
+            send_fan_command(state)
+        else:
+            logger.warning("MQTT not connected, controlling fan directly")
+            if not SIMULATION_MODE:
+                GPIO.output(FAN_PIN, GPIO.HIGH if state else GPIO.LOW)
+    except ImportError:
+        # Fall back to direct control if MQTT is not available
+        logger.warning("MQTT client not available, controlling fan directly")
+        if not SIMULATION_MODE:
+            GPIO.output(FAN_PIN, GPIO.HIGH if state else GPIO.LOW)
     
     # Update database with new state
     update_control_state_db()
@@ -102,8 +118,21 @@ def control_light(state):
     """Control the light state"""
     control_state['light'] = state
     
-    if not SIMULATION_MODE:
-        GPIO.output(LIGHT_PIN, GPIO.HIGH if state else GPIO.LOW)
+    # Try to send command via MQTT first
+    try:
+        from mqtt_client import send_light_command, is_connected
+        if is_connected:
+            logger.info(f"Sending light command via MQTT: {'ON' if state else 'OFF'}")
+            send_light_command(state)
+        else:
+            logger.warning("MQTT not connected, controlling light directly")
+            if not SIMULATION_MODE:
+                GPIO.output(LIGHT_PIN, GPIO.HIGH if state else GPIO.LOW)
+    except ImportError:
+        # Fall back to direct control if MQTT is not available
+        logger.warning("MQTT client not available, controlling light directly")
+        if not SIMULATION_MODE:
+            GPIO.output(LIGHT_PIN, GPIO.HIGH if state else GPIO.LOW)
     
     # Update database with new state
     update_control_state_db()
@@ -115,8 +144,21 @@ def control_water_pump(state):
     """Control the water pump state"""
     control_state['water_pump'] = state
     
-    if not SIMULATION_MODE:
-        GPIO.output(WATER_PUMP_PIN, GPIO.HIGH if state else GPIO.LOW)
+    # Try to send command via MQTT first
+    try:
+        from mqtt_client import send_water_pump_command, is_connected
+        if is_connected:
+            logger.info(f"Sending water pump command via MQTT: {'ON' if state else 'OFF'}")
+            send_water_pump_command(state)
+        else:
+            logger.warning("MQTT not connected, controlling water pump directly")
+            if not SIMULATION_MODE:
+                GPIO.output(WATER_PUMP_PIN, GPIO.HIGH if state else GPIO.LOW)
+    except ImportError:
+        # Fall back to direct control if MQTT is not available
+        logger.warning("MQTT client not available, controlling water pump directly")
+        if not SIMULATION_MODE:
+            GPIO.output(WATER_PUMP_PIN, GPIO.HIGH if state else GPIO.LOW)
     
     # Update database with new state
     update_control_state_db()
@@ -133,15 +175,58 @@ def read_sensors():
         light_level = round(random.uniform(0.0, 1000.0), 1)
         soil_moisture = round(random.uniform(0.0, 100.0), 1)
     else:
-        # Read actual sensor data
-        humidity, temperature = Adafruit_DHT.read_retry(DHT_SENSOR_TYPE, DHT_SENSOR_PIN)
+        try:
+            # Read DHT22 temperature and humidity sensor
+            humidity, temperature = Adafruit_DHT.read_retry(DHT_SENSOR_TYPE, DHT_SENSOR_PIN)
+            if humidity is None or temperature is None:
+                logger.warning("Failed to read from DHT sensor, using default values")
+                temperature = 20.0
+                humidity = 50.0
+            else:
+                # Round to 1 decimal place
+                temperature = round(temperature, 1)
+                humidity = round(humidity, 1)
+            
+            # Read BH1750 light sensor via I2C
+            try:
+                # This would be the actual code for BH1750
+                # import smbus
+                # bus = smbus.SMBus(1)  # Use I2C bus 1
+                # addr = 0x23  # Default I2C address of BH1750
+                # data = bus.read_i2c_block_data(addr, 0x20, 2)  # One-time high-res mode (0x20)
+                # light_level = (data[0] << 8 | data[1]) / 1.2  # Convert to lux
+                
+                # For now, use a random value for testing
+                light_level = round(random.uniform(0.0, 1000.0), 1)
+                logger.info(f"Light level: {light_level} lux")
+            except Exception as e:
+                logger.error(f"Error reading BH1750 light sensor: {e}")
+                light_level = 500.0  # Default value
+            
+            # Read capacitive soil moisture sensor
+            try:
+                # In actual implementation, you would need to read the analog value 
+                # If using GPIO directly, you'd use a capacitive sensor digital output
+                # If using an ADC, you'd read the analog value and convert
+                # Example using Raspberry Pi GPIO:
+                # GPIO.setup(SOIL_MOISTURE_PIN, GPIO.IN)
+                # soil_moisture_digital = GPIO.input(SOIL_MOISTURE_PIN)
+                # soil_moisture = 100.0 if soil_moisture_digital == 0 else 0.0
+                
+                # For now, use a random value for testing
+                soil_moisture = round(random.uniform(0.0, 100.0), 1)
+                logger.info(f"Soil moisture: {soil_moisture}%")
+            except Exception as e:
+                logger.error(f"Error reading soil moisture sensor: {e}")
+                soil_moisture = 50.0  # Default value
         
-        # Read light sensor (analog would require ADC, here's a placeholder)
-        # In real implementation, you would use an ADC like MCP3008
-        light_level = random.uniform(0.0, 1000.0)  # Replace with actual reading
-        
-        # Read soil moisture (analog would require ADC, here's a placeholder)
-        soil_moisture = random.uniform(0.0, 100.0)  # Replace with actual reading
+        except Exception as e:
+            logger.error(f"Error reading sensors: {e}")
+            # Default values if sensor reading fails
+            temperature = 20.0
+            humidity = 50.0
+            light_level = 500.0
+            soil_moisture = 50.0
     
     # Create sensor reading dict
     sensor_data = {
