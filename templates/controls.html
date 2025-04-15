@@ -1,0 +1,237 @@
+{% extends "layout.html" %}
+
+{% block title %}Controls - OpenGrow-Box{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1>System Controls</h1>
+        <p class="text-muted">Manually control your grow box components</p>
+    </div>
+</div>
+
+<!-- Current Sensor Reading Card -->
+<div class="row mb-4">
+    <div class="col">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0"><i class="fas fa-thermometer-half"></i> Current Conditions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-thermometer-half fa-2x text-danger mb-2"></i>
+                            <h6>Temperature</h6>
+                            <h4 id="current-temperature">
+                                {% if sensor_data %}
+                                    {{ "%.1f"|format(sensor_data.temperature) }}°C
+                                {% else %}
+                                    --.-°C
+                                {% endif %}
+                            </h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-tint fa-2x text-info mb-2"></i>
+                            <h6>Humidity</h6>
+                            <h4 id="current-humidity">
+                                {% if sensor_data %}
+                                    {{ "%.1f"|format(sensor_data.humidity) }}%
+                                {% else %}
+                                    --.-%
+                                {% endif %}
+                            </h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-sun fa-2x text-warning mb-2"></i>
+                            <h6>Light Level</h6>
+                            <h4 id="current-light">
+                                {% if sensor_data %}
+                                    {{ "%.1f"|format(sensor_data.light_level) }} lux
+                                {% else %}
+                                    --.- lux
+                                {% endif %}
+                            </h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-water fa-2x text-success mb-2"></i>
+                            <h6>Soil Moisture</h6>
+                            <h4 id="current-soil">
+                                {% if sensor_data and sensor_data.soil_moisture %}
+                                    {{ "%.1f"|format(sensor_data.soil_moisture) }}%
+                                {% else %}
+                                    --.-%
+                                {% endif %}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Controls Section -->
+<div class="row mb-4">
+    <!-- Fan Control -->
+    <div class="col-md-4 mb-3">
+        <div class="card control-card h-100">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0"><i class="fas fa-fan"></i> Fan Control</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3 text-center">
+                    <div class="d-flex justify-content-center align-items-center mb-3">
+                        <span class="me-3">Status:</span>
+                        <span id="fan-status" class="badge {% if control_state and control_state.fan_state %}bg-success{% else %}bg-secondary{% endif %}">
+                            {% if control_state and control_state.fan_state %}ON{% else %}OFF{% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="form-check form-switch d-flex justify-content-center align-items-center">
+                        <input class="form-check-input control-switch" type="checkbox" id="fan-switch" 
+                            {% if control_state and control_state.fan_state %}checked{% endif %}>
+                        <label class="form-check-label ms-2" for="fan-switch">
+                            Toggle Fan
+                        </label>
+                    </div>
+                    
+                    <div class="auto-toggle-container mt-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="fan-auto" 
+                                {% if settings and settings.fan_auto == 'true' %}checked{% endif %}>
+                            <label class="form-check-label" for="fan-auto">
+                                Auto Control
+                            </label>
+                        </div>
+                        <span id="fan-auto-status" class="badge {% if settings and settings.fan_auto == 'true' %}bg-info{% else %}bg-warning{% endif %}">
+                            {% if settings and settings.fan_auto == 'true' %}AUTO{% else %}MANUAL{% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="text-muted small">
+                    <p><strong>Auto Mode:</strong> Fan will turn on when temperature exceeds {{ settings.temperature_max if settings else '30.0' }}°C and turn off when temperature drops below {{ "%.1f"|format(float(settings.temperature_max) - 2) if settings else '28.0' }}°C.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Light Control -->
+    <div class="col-md-4 mb-3">
+        <div class="card control-card h-100">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Light Control</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3 text-center">
+                    <div class="d-flex justify-content-center align-items-center mb-3">
+                        <span class="me-3">Status:</span>
+                        <span id="light-status" class="badge {% if control_state and control_state.light_state %}bg-success{% else %}bg-secondary{% endif %}">
+                            {% if control_state and control_state.light_state %}ON{% else %}OFF{% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="form-check form-switch d-flex justify-content-center align-items-center">
+                        <input class="form-check-input control-switch" type="checkbox" id="light-switch" 
+                            {% if control_state and control_state.light_state %}checked{% endif %}>
+                        <label class="form-check-label ms-2" for="light-switch">
+                            Toggle Light
+                        </label>
+                    </div>
+                    
+                    <div class="auto-toggle-container mt-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="light-auto" 
+                                {% if settings and settings.light_auto == 'true' %}checked{% endif %}>
+                            <label class="form-check-label" for="light-auto">
+                                Auto Control
+                            </label>
+                        </div>
+                        <span id="light-auto-status" class="badge {% if settings and settings.light_auto == 'true' %}bg-info{% else %}bg-warning{% endif %}">
+                            {% if settings and settings.light_auto == 'true' %}AUTO{% else %}MANUAL{% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="text-muted small">
+                    <p><strong>Auto Mode:</strong> Light will turn on from {{ settings.light_hours_start if settings else '6' }}:00 to {{ settings.light_hours_end if settings else '18' }}:00 daily.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Water Pump Control -->
+    <div class="col-md-4 mb-3">
+        <div class="card control-card h-100">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0"><i class="fas fa-faucet"></i> Water Pump Control</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3 text-center">
+                    <div class="d-flex justify-content-center align-items-center mb-3">
+                        <span class="me-3">Status:</span>
+                        <span id="pump-status" class="badge {% if control_state and control_state.water_pump_state %}bg-success{% else %}bg-secondary{% endif %}">
+                            {% if control_state and control_state.water_pump_state %}ON{% else %}OFF{% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="form-check form-switch d-flex justify-content-center align-items-center">
+                        <input class="form-check-input control-switch" type="checkbox" id="pump-switch" 
+                            {% if control_state and control_state.water_pump_state %}checked{% endif %}>
+                        <label class="form-check-label ms-2" for="pump-switch">
+                            Toggle Pump
+                        </label>
+                    </div>
+                    
+                    <div class="auto-toggle-container mt-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="water-auto" 
+                                {% if settings and settings.water_auto == 'true' %}checked{% endif %}>
+                            <label class="form-check-label" for="water-auto">
+                                Auto Control
+                            </label>
+                        </div>
+                        <span id="water-auto-status" class="badge {% if settings and settings.water_auto == 'true' %}bg-info{% else %}bg-warning{% endif %}">
+                            {% if settings and settings.water_auto == 'true' %}AUTO{% else %}MANUAL{% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="text-muted small">
+                    <p><strong>Auto Mode:</strong> 
+                    {% if settings and settings.water_schedule == 'daily' %}
+                        Water pump will activate for {{ settings.water_duration }} seconds at {{ settings.water_time }}:00 daily.
+                    {% elif settings and settings.water_schedule == 'custom' %}
+                        Water pump will activate according to custom schedule.
+                    {% else %}
+                        Automatic watering is disabled.
+                    {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Note about automatic control -->
+<div class="row mb-4">
+    <div class="col">
+        <div class="alert alert-info">
+            <h5 class="alert-heading"><i class="fas fa-info-circle"></i> About Automatic Control</h5>
+            <p>When a component is set to "Auto Control", the system will automatically manage the device based on your configured settings and sensor readings. Toggle off auto control to manually override settings.</p>
+            <p class="mb-0">Configure automatic control thresholds and schedules in the <a href="{{ url_for('settings') }}" class="alert-link">Settings</a> page.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/controls.js') }}"></script>
+{% endblock %}

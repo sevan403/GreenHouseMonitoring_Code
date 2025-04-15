@@ -1,0 +1,160 @@
+{% extends "layout.html" %}
+
+{% block title %}History - OpenGrow-Box{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1>Sensor History</h1>
+        <p class="text-muted">View historical sensor readings and data</p>
+    </div>
+</div>
+
+<!-- Time Range Selector -->
+<div class="row mb-4">
+    <div class="col-lg-6">
+        <div class="card history-filters">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Time Range</h5>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-sm-8 mb-2 mb-sm-0">
+                        <select id="time-range-select" class="form-select">
+                            <option value="12h" {% if selected_range == '12h' %}selected{% endif %}>Last 12 Hours</option>
+                            <option value="24h" {% if selected_range == '24h' or not selected_range %}selected{% endif %}>Last 24 Hours</option>
+                            <option value="48h" {% if selected_range == '48h' %}selected{% endif %}>Last 48 Hours</option>
+                            <option value="7d" {% if selected_range == '7d' %}selected{% endif %}>Last 7 Days</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-4 text-end">
+                        <button id="export-data-btn" class="btn btn-outline-secondary">
+                            <i class="fas fa-download me-2"></i> Export Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <!-- Latest Reading Summary -->
+        <div class="card history-filters">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Latest Reading</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-3">
+                        <div class="small text-muted">Temperature</div>
+                        <div class="fw-bold">{{ "%.1f"|format(latest.temperature) }}°C</div>
+                    </div>
+                    <div class="col-3">
+                        <div class="small text-muted">Humidity</div>
+                        <div class="fw-bold">{{ "%.1f"|format(latest.humidity) }}%</div>
+                    </div>
+                    <div class="col-3">
+                        <div class="small text-muted">Light</div>
+                        <div class="fw-bold">{{ "%.1f"|format(latest.light_level) }}</div>
+                    </div>
+                    <div class="col-3">
+                        <div class="small text-muted">Time</div>
+                        <div class="fw-bold small">{{ latest.timestamp.split('T')[1].split('.')[0] if latest else '--:--:--' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Indicator -->
+<div id="chart-loading" class="chart-loading">
+    <i class="fas fa-spinner fa-spin me-2"></i> Loading chart data...
+</div>
+
+<!-- Charts Section -->
+<div class="row mb-4">
+    <!-- Temperature Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0"><i class="fas fa-thermometer-half"></i> Temperature History</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="temperature-chart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Humidity Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0"><i class="fas fa-tint"></i> Humidity History</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="humidity-chart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Light Level Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0"><i class="fas fa-sun"></i> Light Level History</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="light-chart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Soil Moisture Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0"><i class="fas fa-water"></i> Soil Moisture History</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="soil-moisture-chart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Daily Min/Max Section -->
+<div class="row mb-4">
+    <div class="col-12 mb-3">
+        <h3>Daily Statistics (Last 7 Days)</h3>
+    </div>
+    
+    <!-- Temperature Min/Max Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Daily Temperature Range</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="temperature-minmax-chart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Humidity Min/Max Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Daily Humidity Range</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="humidity-minmax-chart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,192 @@
+{% extends "layout.html" %}
+
+{% block title %}Settings - OpenGrow-Box{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1>System Settings</h1>
+        <p class="text-muted">Configure your grow box operation parameters</p>
+    </div>
+</div>
+
+<form method="post" action="{{ url_for('settings') }}">
+    <!-- Temperature Settings Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-dark">
+            <h5 class="mb-0"><i class="fas fa-thermometer-half"></i> Temperature Settings</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="temperature_min" class="form-label">Minimum Temperature (°C)</label>
+                    <input type="number" step="0.1" class="form-control" id="temperature_min" name="temperature_min" 
+                           value="{{ settings.temperature_min if settings else '18.0' }}" min="0" max="40">
+                    <div class="form-text">Alert when temperature drops below this value</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="temperature_max" class="form-label">Maximum Temperature (°C)</label>
+                    <input type="number" step="0.1" class="form-control" id="temperature_max" name="temperature_max" 
+                           value="{{ settings.temperature_max if settings else '30.0' }}" min="10" max="50">
+                    <div class="form-text">Fan will activate when temperature exceeds this value</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Humidity Settings Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-dark">
+            <h5 class="mb-0"><i class="fas fa-tint"></i> Humidity Settings</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="humidity_min" class="form-label">Minimum Humidity (%)</label>
+                    <input type="number" step="0.1" class="form-control" id="humidity_min" name="humidity_min" 
+                           value="{{ settings.humidity_min if settings else '40.0' }}" min="0" max="100">
+                    <div class="form-text">Alert when humidity drops below this value</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="humidity_max" class="form-label">Maximum Humidity (%)</label>
+                    <input type="number" step="0.1" class="form-control" id="humidity_max" name="humidity_max" 
+                           value="{{ settings.humidity_max if settings else '80.0' }}" min="0" max="100">
+                    <div class="form-text">Alert when humidity exceeds this value</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Light Schedule Settings -->
+    <div class="card mb-4">
+        <div class="card-header bg-dark">
+            <h5 class="mb-0"><i class="fas fa-sun"></i> Light Schedule</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="light_hours_start" class="form-label">Light Start Time (hour)</label>
+                    <select class="form-select" id="light_hours_start" name="light_hours_start">
+                        {% for i in range(0, 24) %}
+                            <option value="{{ i }}" {% if settings and settings.light_hours_start|int == i %}selected{% endif %}>
+                                {{ '%02d'|format(i) }}:00
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">Time when grow lights turn on (24-hour format)</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="light_hours_end" class="form-label">Light End Time (hour)</label>
+                    <select class="form-select" id="light_hours_end" name="light_hours_end">
+                        {% for i in range(0, 24) %}
+                            <option value="{{ i }}" {% if settings and settings.light_hours_end|int == i %}selected{% endif %}>
+                                {{ '%02d'|format(i) }}:00
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">Time when grow lights turn off (24-hour format)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Watering Schedule Settings -->
+    <div class="card mb-4">
+        <div class="card-header bg-dark">
+            <h5 class="mb-0"><i class="fas fa-faucet"></i> Watering Schedule</h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6 mb-3">
+                    <label for="water_schedule" class="form-label">Watering Schedule</label>
+                    <select class="form-select" id="water_schedule" name="water_schedule">
+                        <option value="off" {% if settings and settings.water_schedule == 'off' %}selected{% endif %}>
+                            Off (Manual Watering Only)
+                        </option>
+                        <option value="daily" {% if settings and settings.water_schedule == 'daily' %}selected{% endif %}>
+                            Daily
+                        </option>
+                        <option value="custom" {% if settings and settings.water_schedule == 'custom' %}selected{% endif %}>
+                            Custom (Not yet implemented)
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="water_time" class="form-label">Watering Time (hour)</label>
+                    <select class="form-select" id="water_time" name="water_time">
+                        {% for i in range(0, 24) %}
+                            <option value="{{ i }}" {% if settings and settings.water_time|int == i %}selected{% endif %}>
+                                {{ '%02d'|format(i) }}:00
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">Time when watering occurs (24-hour format)</div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="water_duration" class="form-label">Watering Duration (seconds)</label>
+                    <input type="number" class="form-control" id="water_duration" name="water_duration" 
+                           value="{{ settings.water_duration if settings else '30' }}" min="1" max="300">
+                    <div class="form-text">How long the water pump runs during watering</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Auto Control Settings -->
+    <div class="card mb-4">
+        <div class="card-header bg-dark">
+            <h5 class="mb-0"><i class="fas fa-sliders-h"></i> Auto Control Settings</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="fan_auto" name="fan_auto" value="true"
+                               {% if settings and settings.fan_auto == 'true' %}checked{% endif %}>
+                        <label class="form-check-label" for="fan_auto">
+                            Enable Fan Auto Control
+                        </label>
+                    </div>
+                    <div class="form-text">Fan turns on/off based on temperature thresholds</div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="light_auto" name="light_auto" value="true"
+                               {% if settings and settings.light_auto == 'true' %}checked{% endif %}>
+                        <label class="form-check-label" for="light_auto">
+                            Enable Light Auto Control
+                        </label>
+                    </div>
+                    <div class="form-text">Light turns on/off based on time schedule</div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="water_auto" name="water_auto" value="true"
+                               {% if settings and settings.water_auto == 'true' %}checked{% endif %}>
+                        <label class="form-check-label" for="water_auto">
+                            Enable Water Auto Control
+                        </label>
+                    </div>
+                    <div class="form-text">Water pump activates based on schedule</div>
+                </div>
+            </div>
+            
+            <div class="alert alert-info mt-3">
+                <p class="mb-0"><i class="fas fa-info-circle"></i> When auto control is disabled for a component, you can control it manually from the <a href="{{ url_for('controls') }}" class="alert-link">Controls</a> page.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Submit Button -->
+    <div class="text-center mb-5">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-2"></i> Save Settings
+        </button>
+    </div>
+</form>
+{% endblock %}

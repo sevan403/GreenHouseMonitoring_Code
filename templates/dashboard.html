@@ -1,0 +1,254 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - OpenGrow-Box{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1>System Dashboard</h1>
+        <p class="text-muted">Current conditions and system status</p>
+    </div>
+    <div class="col-auto d-flex align-items-center">
+        <span class="text-muted">Last updated: </span>
+        <span id="reading-timestamp" class="badge bg-secondary ms-2">
+            {% if sensor_data %}
+                {{ sensor_data.timestamp }}
+            {% else %}
+                No data
+            {% endif %}
+        </span>
+    </div>
+</div>
+
+<!-- Current Conditions Cards -->
+<div class="row mb-4">
+    <!-- Temperature Card -->
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card sensor-card temperature-card h-100">
+            <div class="card-body">
+                <h5 class="card-title text-muted">
+                    <i class="fas fa-thermometer-half"></i> Temperature
+                </h5>
+                <p class="sensor-value mb-0" id="current-temperature">
+                    {% if sensor_data %}
+                        {{ "%.1f"|format(sensor_data.temperature) }}°C
+                    {% else %}
+                        --.-°C
+                    {% endif %}
+                </p>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-muted">Status:</span>
+                    <span class="badge {% if sensor_data and sensor_data.temperature > 30 %}bg-danger{% elif sensor_data and sensor_data.temperature < 18 %}bg-info{% else %}bg-success{% endif %}" id="temperature-status">
+                        {% if sensor_data %}
+                            {% if sensor_data.temperature > 30 %}
+                                TOO HIGH
+                            {% elif sensor_data.temperature < 18 %}
+                                TOO LOW
+                            {% else %}
+                                GOOD
+                            {% endif %}
+                        {% else %}
+                            UNKNOWN
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Humidity Card -->
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card sensor-card humidity-card h-100">
+            <div class="card-body">
+                <h5 class="card-title text-muted">
+                    <i class="fas fa-tint"></i> Humidity
+                </h5>
+                <p class="sensor-value mb-0" id="current-humidity">
+                    {% if sensor_data %}
+                        {{ "%.1f"|format(sensor_data.humidity) }}%
+                    {% else %}
+                        --.-%
+                    {% endif %}
+                </p>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-muted">Status:</span>
+                    <span class="badge {% if sensor_data and sensor_data.humidity > 80 %}bg-info{% elif sensor_data and sensor_data.humidity < 40 %}bg-warning{% else %}bg-success{% endif %}" id="humidity-status">
+                        {% if sensor_data %}
+                            {% if sensor_data.humidity > 80 %}
+                                TOO HIGH
+                            {% elif sensor_data.humidity < 40 %}
+                                TOO LOW
+                            {% else %}
+                                GOOD
+                            {% endif %}
+                        {% else %}
+                            UNKNOWN
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Light Level Card -->
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card sensor-card light-card h-100">
+            <div class="card-body">
+                <h5 class="card-title text-muted">
+                    <i class="fas fa-sun"></i> Light Level
+                </h5>
+                <p class="sensor-value mb-0" id="current-light">
+                    {% if sensor_data %}
+                        {{ "%.1f"|format(sensor_data.light_level) }} lux
+                    {% else %}
+                        --.- lux
+                    {% endif %}
+                </p>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-muted">Light Source:</span>
+                    <span class="badge bg-warning">
+                        {% if control_state and control_state.light_state %}
+                            GROW LIGHT
+                        {% else %}
+                            AMBIENT
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Soil Moisture Card -->
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card sensor-card soil-card h-100">
+            <div class="card-body">
+                <h5 class="card-title text-muted">
+                    <i class="fas fa-water"></i> Soil Moisture
+                </h5>
+                <p class="sensor-value mb-0" id="current-soil">
+                    {% if sensor_data and sensor_data.soil_moisture %}
+                        {{ "%.1f"|format(sensor_data.soil_moisture) }}%
+                    {% else %}
+                        --.-%
+                    {% endif %}
+                </p>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-muted">Watering:</span>
+                    <span class="badge {% if control_state and control_state.water_pump_state %}bg-primary{% else %}bg-secondary{% endif %}">
+                        {% if control_state and control_state.water_pump_state %}
+                            ACTIVE
+                        {% else %}
+                            IDLE
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Status Cards -->
+<div class="row mb-4">
+    <div class="col">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0"><i class="fas fa-cogs"></i> System Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Fan Status -->
+                    <div class="col-md-4 mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-fan me-2"></i> Fan
+                            </div>
+                            <span id="fan-status" class="badge {% if control_state and control_state.fan_state %}bg-success{% else %}bg-danger{% endif %}">
+                                {% if control_state and control_state.fan_state %}
+                                    ON
+                                {% else %}
+                                    OFF
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Light Status -->
+                    <div class="col-md-4 mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-lightbulb me-2"></i> Grow Light
+                            </div>
+                            <span id="light-status" class="badge {% if control_state and control_state.light_state %}bg-success{% else %}bg-danger{% endif %}">
+                                {% if control_state and control_state.light_state %}
+                                    ON
+                                {% else %}
+                                    OFF
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Water Pump Status -->
+                    <div class="col-md-4 mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-faucet me-2"></i> Water Pump
+                            </div>
+                            <span id="pump-status" class="badge {% if control_state and control_state.water_pump_state %}bg-success{% else %}bg-danger{% endif %}">
+                                {% if control_state and control_state.water_pump_state %}
+                                    ON
+                                {% else %}
+                                    OFF
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col text-center">
+                        <a href="{{ url_for('controls') }}" class="btn btn-primary">
+                            <i class="fas fa-sliders-h me-2"></i> Adjust Controls
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent History Charts -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Temperature History</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="temperature-chart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Humidity History</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="humidity-chart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col text-center mt-3">
+        <a href="{{ url_for('history') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-history me-2"></i> View Full History
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
