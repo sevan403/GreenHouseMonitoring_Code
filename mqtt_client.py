@@ -29,7 +29,7 @@ TOPIC_SYSTEM_STATUS = "opengrow/system/status"
 mqtt_client = None
 is_connected = False
 
-def on_connect(client, userdata, flags, rc):
+def on_connect(client, userdata, flags, rc, properties=None):
     """Called when the client connects to the broker"""
     global is_connected
     if rc == 0:
