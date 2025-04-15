@@ -39,8 +39,8 @@ The two devices communicate using MQTT, allowing for a clean separation between 
 
 2. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/opengrow-box.git
-   cd opengrow-box
+   git clone https://github.com/sevan403/GreenHouseMonitoring_Code.git
+   cd GreenHouseMonitoring_Code
    ```
 
 3. Install Python dependencies:
