@@ -1,8 +1,11 @@
+
 from datetime import datetime
 from app import db
 
 class SensorReading(db.Model):
     """Model for storing sensor readings"""
+    __tablename__ = 'sensor_readings'
+    
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     temperature = db.Column(db.Float, nullable=False)
@@ -25,6 +28,8 @@ class SensorReading(db.Model):
 
 class ControlState(db.Model):
     """Model for storing current state of control devices"""
+    __tablename__ = 'control_states'
+    
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     fan_state = db.Column(db.Boolean, default=False)
@@ -45,6 +50,8 @@ class ControlState(db.Model):
 
 class Settings(db.Model):
     """Model for storing system settings and thresholds"""
+    __tablename__ = 'settings'
+    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True, nullable=False)
     value = db.Column(db.String(255), nullable=False)
