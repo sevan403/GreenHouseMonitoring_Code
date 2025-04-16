@@ -1,16 +1,12 @@
+
 import os
 import logging
-
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase as Base
+from models import db
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-# Initialize SQLAlchemy with the Base class
-db = SQLAlchemy(model_class=Base)
 
 # Create Flask application
 app = Flask(__name__)
@@ -36,8 +32,7 @@ with app.app_context():
     register_routes(app)
     register_api_routes(app)
     
-    # Import models and create tables
-    import models
+    # Create tables
     db.create_all()
     
     # Initialize hardware (if available)

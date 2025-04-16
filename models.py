@@ -1,6 +1,9 @@
 
 from datetime import datetime
-from app import db
+from flask_sqlalchemy import SQLAlchemy
+
+# Initialize SQLAlchemy
+db = SQLAlchemy()
 
 class SensorReading(db.Model):
     """Model for storing sensor readings"""
