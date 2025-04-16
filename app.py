@@ -3,14 +3,11 @@ import logging
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase as Base
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-class Base(DeclarativeBase):
-    pass
 
 # Initialize SQLAlchemy with the Base class
 db = SQLAlchemy(model_class=Base)
