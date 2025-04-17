@@ -88,6 +88,8 @@ The two devices communicate using MQTT, allowing for a clean separation between 
 3. Install Python dependencies:
    ```bash
    pip3 install paho-mqtt Adafruit_DHT smbus2 RPi.GPIO
+   or
+   FORCE_PI=1 pip install paho-mqtt adafruit-circuitpython-dht smbus2 RPi.GPIO
    ```
 
 4. Copy the `sensor_client.py` file to the Sensor Pi.
