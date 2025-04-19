@@ -117,7 +117,7 @@
                 </div>
                 
                 <div class="text-muted small">
-                    <p><strong>Auto Mode:</strong> Fan will turn on when temperature exceeds {{ settings.temperature_max if settings else '30.0' }}°C and turn off when temperature drops below {{ "%.1f"|format(float(settings.temperature_max) - 2) if settings else '28.0' }}°C.</p>
+                    <p><strong>Auto Mode:</strong> Fan will turn on when temperature exceeds {{ settings.temperature_max | default(30.0) }}°C and turn off when temperature drops below {{ (settings.temperature_max | float | default(30.0) - 2) | round(1) }}°C.</p>
                 </div>
             </div>
         </div>
