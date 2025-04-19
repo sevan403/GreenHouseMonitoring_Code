@@ -83,30 +83,30 @@ def register_routes(app):
         
         return render_template('settings.html', settings=current_settings)
     
-    @app.route('/history')
+        @app.route('/history')
     def history():
         """History page for viewing historical sensor data"""
-        # Get latest readings
         latest = get_latest_reading()
-        
-        # Default to 24 hours of data
-        time_range = request.args.get('range', '24')
-        try:
-            hours = int(time_range)
-        except ValueError:
-            hours = 24
-        
-        # Get hourly average data for charts
+
+        # Parse selected time range
+        time_range = request.args.get('range', '24h')  # Default: 24 hours
+        range_map = {
+            '12h': 12,
+            '24h': 24,
+            '48h': 48,
+            '7d': 168  # 7 days * 24 hours
+        }
+        hours = range_map.get(time_range, 24)  # fallback to 24h if invalid
+
+        # Get data
         hourly_data = get_hourly_average(hours)
-        
-        # Get daily min/max for longer ranges
-        daily_data = get_daily_min_max(7)  # Last week
-        
-        return render_template('history.html', 
-                              latest=latest,
-                              hourly_data=hourly_data,
-                              daily_data=daily_data,
-                              selected_range=time_range)
+        daily_data = get_daily_min_max(7)
+
+        return render_template('history.html',
+                               latest=latest,
+                               hourly_data=hourly_data,
+                               daily_data=daily_data,
+                               selected_range=time_range)
     
     @app.errorhandler(404)
     def page_not_found(e):
