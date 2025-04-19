@@ -47,19 +47,43 @@
                 <div class="row text-center">
                     <div class="col-3">
                         <div class="small text-muted">Temperature</div>
-                        <div class="fw-bold">{{ "%.1f"|format(latest.temperature) }}°C</div>
+                        <div class="fw-bold">
+                            {% if latest %}
+                                {{ "%.1f"|format(latest.temperature) }}°C
+                            {% else %}
+                                --:--:--
+                            {% endif %}
+                        </div>
                     </div>
                     <div class="col-3">
                         <div class="small text-muted">Humidity</div>
-                        <div class="fw-bold">{{ "%.1f"|format(latest.humidity) }}%</div>
+                        <div class="fw-bold">
+                            {% if latest %}
+                                {{ "%.1f"|format(latest.humidity) }}%
+                            {% else %}
+                                --:--:--
+                            {% endif %}
+                        </div>
                     </div>
                     <div class="col-3">
                         <div class="small text-muted">Light</div>
-                        <div class="fw-bold">{{ "%.1f"|format(latest.light_level) }}</div>
+                        <div class="fw-bold">
+                            {% if latest %}
+                                {{ "%.1f"|format(latest.light_level) }}
+                            {% else %}
+                                --:--:--
+                            {% endif %}
+                        </div>
                     </div>
                     <div class="col-3">
                         <div class="small text-muted">Time</div>
-                        <div class="fw-bold small">{{ latest.timestamp.split('T')[1].split('.')[0] if latest else '--:--:--' }}</div>
+                        <div class="fw-bold small">
+                            {% if latest %}
+                                {{ latest.timestamp.split('T')[1].split('.')[0] }}
+                            {% else %}
+                                --:--:--
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
