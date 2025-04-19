@@ -107,6 +107,7 @@ def register_routes(app):
                                hourly_data=hourly_data,
                                daily_data=daily_data,
                                selected_range=time_range)
+
     
     @app.errorhandler(404)
     def page_not_found(e):
