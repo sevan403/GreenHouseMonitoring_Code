@@ -14,7 +14,7 @@ BH1750_ADDR = 0x23
 CONT_H_RES_MODE = 0x10
 
 def read_light(bus):
-    data = bus.read_i2c_block_data(BH1750_ADDR, CONT_H_RES_MODE)
+    data = bus.read_i2c_block_data(BH1750_ADDR, CONT_H_RES_MODE, 2)
     light_level = (data[0] << 8) + data[1]
     return light_level / 1.2  # Convert to lux
 
