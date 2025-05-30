@@ -150,3 +150,24 @@ The system will run in simulation mode, generating random sensor data.
 ## License
 
 This project is open source and available under the MIT License.
+
+
+
+
+
+Description=Sensor Data Publisher
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/pi/GreenHouseMonitoring_Code/modules/sensor_client.py
+WorkingDirectory=/home/pi/GreenHouseMonitoring_Code
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
+
+
+
